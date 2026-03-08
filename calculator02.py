@@ -69,13 +69,15 @@ class Calculator:
     def run(self):
         self.token_data = Tokenizer(self.text)
         self.token_data.run()
-        print(self.token_data.data_tokenizer)
+        print("Data_tokenizer",self.token_data.data_tokenizer)
 
         self.rpn_list = RPN(self.token_data.data_tokenizer)
         self.rpn_list.run()
-        print(self.rpn_list.queue)
+        print("Queue",self.rpn_list.queue)
+
         self.count_list = Count(self.rpn_list.queue)
         self.count_list.run()
+        print()
 
         self.answer = self.count_list.stack[-1]
         #не работает
@@ -92,7 +94,8 @@ class Tokenizer:
             "START": self.start_token,
             "NUMBER": self.numb_token,
             "FLOAT": self.float_token,
-            "OP": self.op_token
+            "OP": self.op_token,
+            "ERROR": self.error
         }
 
     #управвлящая функция
@@ -138,6 +141,8 @@ class Tokenizer:
             self.error()
         elif ch in ")" and self.buffer[-1] == ".":
             self.clearing_buffer(ch, "OP")
+        elif ch in ")" and self.buffer[-1].isdigit():
+             self.clearing_buffer(ch,"OP")
         elif ch in "+-*/" and self.buffer[-1] != ".":
             self.clearing_buffer(ch, "OP")
         else:
@@ -283,8 +288,8 @@ class Count:
     def run(self)-> None:
         char:str
         for char in self.rpn_queue:
-            #print(f"sign = {char} ")
-            #print(f"stack_count = {self.stack}\n")
+            print(f"sign = {char} ")
+            print(f"stack_count = {self.stack}\n")
             if  is_number(char) :
                 self.stack.append(char)
             else:
@@ -312,14 +317,14 @@ class Count:
 
 def is_number(element):
         try:
-            if float(element):
-                return True
+            float(element)
+            return True
         except ValueError:
             return False
 
 
 if __name__ == "__main__":
-    x = Calculator("13.3+31.2*0.1")
+    x = Calculator("-13.3+(-31.2)*0.1")
     print(x.answer)
 
     # start = Manage()
