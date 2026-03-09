@@ -26,3 +26,7 @@ def test_tokenizer():
     result = cl.Tokenizer("2+3")
     result.run()
     assert result.data_tokenizer == ["2","+","3"]
+
+def test_tokenizer_error():
+    with pytest.raises(cl.Tokenizer_error):
+        cl.Calculator("2++3")
