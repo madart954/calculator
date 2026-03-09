@@ -1,6 +1,5 @@
 import os
 
-
 class Manage:
     def __init__(self):
         self.user_input = ""
@@ -60,6 +59,7 @@ class History:
 class Calculator:
     def __init__(self, text):
         self.text = text
+        print(self.text)
         self.token_data = list()
         self.rpn_list = list()
         self.count_list = list()
@@ -68,8 +68,12 @@ class Calculator:
 
     def run(self):
         self.token_data = Tokenizer(self.text)
-        self.token_data.run()
-        print("Data_tokenizer",self.token_data.data_tokenizer)
+        try:
+            self.token_data.run()
+            print("Data_tokenizer",self.token_data.data_tokenizer)
+        except Tokenizer_error as e:
+            print(f"Ошибка {e}")
+            return print("ошибка в токенизации ")
 
         self.rpn_list = RPN(self.token_data.data_tokenizer)
         self.rpn_list.run()
@@ -77,9 +81,9 @@ class Calculator:
 
         self.count_list = Count(self.rpn_list.queue)
         self.count_list.run()
-        print()
-
         self.answer = self.count_list.stack[-1]
+        print(self.answer)
+
         #не работает
         return self.answer
 
@@ -116,7 +120,7 @@ class Tokenizer:
             self.data_tokenizer.append(ch)
             self.state = "OP"
         else:
-            self.error()
+            self.error(ch)
 
     def numb_token(self, ch: str):
 
@@ -126,19 +130,19 @@ class Tokenizer:
             self.clearing_buffer(ch, "OP")
         elif ch in "()":
             if ch == "(":
-                self.error()
+                self.error(ch)
             elif ch == ")":
                 self.clearing_buffer(ch, "OP")
         elif ch == ".":
             self.add_to_buffer(ch, "FLOAT")
         else:
-            self.error()
+            self.error(ch)
 
     def float_token(self, ch: str):
         if ch.isdigit():
             self.add_to_buffer(ch, "FLOAT")
         elif ch == ".":
-            self.error()
+            self.error(ch)
         elif ch in ")" and self.buffer[-1] == ".":
             self.clearing_buffer(ch, "OP")
         elif ch in ")" and self.buffer[-1].isdigit():
@@ -146,7 +150,7 @@ class Tokenizer:
         elif ch in "+-*/" and self.buffer[-1] != ".":
             self.clearing_buffer(ch, "OP")
         else:
-            self.error()
+            self.error(ch)
 
     def op_token(self, ch: str):
         if ch.isdigit():
@@ -156,7 +160,7 @@ class Tokenizer:
         elif ch == "(":
             self.clearing_buffer(ch, "OP")
         else:
-            self.error()
+            self.error(ch)
 
     #вспомогательные функции
     def add_to_buffer(self, ch, new_state):
@@ -170,8 +174,8 @@ class Tokenizer:
         self.data_tokenizer.append(ch)
         self.state = new_state
 
-    def error(self):
-        self.state = "ERROR"
+    def error(self,ch:str = ""):
+        raise Tokenizer_error(f"Неверный символ '{ch}' в состоянии {self.state}")
 
 
 class RPN:
@@ -195,11 +199,11 @@ class RPN:
             if flag:
                 break
 
-            print(f"primer {self.data_list_tokens}\n"
-                  f"element_token = '{element_token}' and index = '{index}'\n"
-                  f"stack = '{self.stack}'\n"
-                  f"queue = '{self.queue}'\n"
-                  f"element_token -1 = '{self.data_list_tokens[index-1]}'\n ")
+            # print(f"primer {self.data_list_tokens}\n"
+            #       f"element_token = '{element_token}' and index = '{index}'\n"
+            #       f"stack = '{self.stack}'\n"
+            #       f"queue = '{self.queue}'\n"
+            #       f"element_token -1 = '{self.data_list_tokens[index-1]}'\n ")
             #унарный минус первого вхождение
             if index == 0 and element_token == "-":
                 self.stack.append("~")
@@ -237,7 +241,7 @@ class RPN:
                 self.input_queue_ch(element_token)
 
             else:
-                self.error()
+                self.error(ch)
                 break
         #остальной стэк
         else:
@@ -288,8 +292,8 @@ class Count:
     def run(self)-> None:
         char:str
         for char in self.rpn_queue:
-            print(f"sign = {char} ")
-            print(f"stack_count = {self.stack}\n")
+            # print(f"sign = {char} ")
+            # print(f"stack_count = {self.stack}\n")
             if  is_number(char) :
                 self.stack.append(char)
             else:
@@ -314,7 +318,6 @@ class Count:
         return str(operation[operator](numb1, numb2))
 
  # STATIC def
-
 def is_number(element):
         try:
             float(element)
@@ -322,10 +325,14 @@ def is_number(element):
         except ValueError:
             return False
 
+#Errors
+class Tokenizer_error(Exception):
+    pass
 
 if __name__ == "__main__":
-    x = Calculator("-13.3+(-31.2)*0.1")
-    print(x.answer)
+    # x = Calculator("-13.3+(-31.2)*0.1").answer
+    y = Calculator("2++3").answer
+    print(y)
 
     # start = Manage()
     # start.start_example()
