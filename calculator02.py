@@ -67,17 +67,23 @@ class Calculator:
         self.run()
 
     def run(self):
+
         self.token_data = Tokenizer(self.text)
         try:
             self.token_data.run()
             print("Data_tokenizer",self.token_data.data_tokenizer)
-        except TokenizerError as e:
-            print(f"Ошибка {e}")
-            return print("ошибка в токенизации ")
+        except TokenizerError as t:
+            print(f"Ошибка {t}")
+            return print("ошибка Tokenizer")
 
         self.rpn_list = RPN(self.token_data.data_tokenizer)
-        self.rpn_list.run()
-        print("Queue",self.rpn_list.queue)
+        try:
+            self.rpn_list.run()
+            print("Queue",self.rpn_list.queue)
+        except RpnError as r:
+            print(f"Ошибка {r}")
+            return print("Ошибка RPN")
+
 
         self.count_list = Count(self.rpn_list.queue)
         self.count_list.run()
@@ -193,11 +199,8 @@ class RPN:
         #базовое выталкивание до скобок
         #обработка скобок
         """Перебираем значенине токенизатора"""
-        flag = False
-        for index, element_token in enumerate(self.tokens):
-            if flag:
-                break
 
+        for index, element_token in enumerate(self.tokens):
             # print(f"primer {self.tokens}\n"
             #       f"element_token = '{element_token}' and index = '{index}'\n"
             #       f"stack = '{self.stack}'\n"
@@ -279,7 +282,7 @@ class RPN:
         return None
 
     def error(self):
-        print(f"error RPN")
+        raise RpnError("Ошибка в обратной польской записи")
 
 
 class Count:
@@ -289,7 +292,7 @@ class Count:
         self.temp_count = None
 
     def run(self)-> None:
-        char:str
+
         for char in self.rpn_queue:
             # print(f"sign = {char} ")
             # print(f"stack_count = {self.stack}\n")
@@ -327,6 +330,10 @@ def is_number(element):
 #Errors
 class TokenizerError(Exception):
     pass
+
+class RpnError(Exception):
+    pass
+
 
 if __name__ == "__main__":
     # x = Calculator("-13.3+(-31.2)*0.1").answer
