@@ -29,7 +29,7 @@ def test_tokenizer():
 
 def test_tokenizer_error2():
     t = cl.Tokenizer("2++3")
-    with pytest.raises(cl.Tokenizer_error):
+    with pytest.raises(cl.TokenizerError):
         t.run()
 
 def test_tokenizer_bad_input():
