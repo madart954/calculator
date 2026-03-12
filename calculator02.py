@@ -236,7 +236,7 @@ class RPN:
                 if (self.tokens[index - 1] == ")"
                         or is_number(self.tokens[index - 1])):
                     self.input_queue_ch(element_token)
-                # унарный минус после скобки ( и перед знаком
+                # унарный минус после скобки ( или перед знаком
                 elif (self.tokens[index - 1] == "("
                       or not is_number(self.tokens[index - 1])):
                     self.input_queue_ch("~")
@@ -344,7 +344,7 @@ class CountError(Exception):
 
 if __name__ == "__main__":
     # x = Calculator("-13.3+(-31.2)*0.1").answer
-    y = Calculator("2/0").answer
+    y = Calculator("-2+3+4").answer
     print(y)
 
     # start = Manage()
