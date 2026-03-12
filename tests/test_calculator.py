@@ -2,6 +2,8 @@ from calculator02 import is_number
 import calculator02 as cl
 import pytest
 
+#UNIT TEST
+#Test Calculator
 @pytest.mark.parametrize("expression, expected", [
     ("2+3", "5.0"),
     ("2*3", "6.0"),
@@ -12,16 +14,21 @@ def test_calculator(expression, expected):
     result = cl.Calculator(expression)
     assert result.answer == expected
 
-
+#тест статик функций
 @pytest.mark.parametrize("expression, expected",[
     ("5",True),
     ("0",True),
     ("abc",False)
 ])
-#тест статик функций
 def test_is_number_number(expression,expected):
     assert is_number(expression) == expected
 
+def test_calculator_devine_0():
+    t = cl.Calculator("10/0")
+    with pytest.raises(cl.CountError):
+        t.run()
+
+#Токенизатор
 def test_tokenizer():
     result = cl.Tokenizer("2+3")
     result.run()
@@ -33,6 +40,12 @@ def test_tokenizer_error2():
         t.run()
 
 def test_tokenizer_bad_input():
-    rssult = cl.Calculator("2--3")
-    assert rssult.answer == ""
+    result = cl.Calculator("2--3")
+    assert result.answer == ""
+
+def test_tokenizer_float_error():
+    t = cl.Tokenizer("(13..)")
+    with pytest.raises(cl.TokenizerError):
+        t.run()
+
 

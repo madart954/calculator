@@ -67,27 +67,29 @@ class Calculator:
         self.run()
 
     def run(self):
-
-        self.token_data = Tokenizer(self.text)
         try:
+            self.token_data = Tokenizer(self.text)
             self.token_data.run()
             print("Data_tokenizer",self.token_data.data_tokenizer)
+
+            self.rpn_list = RPN(self.token_data.data_tokenizer)
+            self.rpn_list.run()
+            print("Queue", self.rpn_list.queue)
+
+            self.count_list = Count(self.rpn_list.queue)
+            self.count_list.run()
+            self.answer = self.count_list.stack[-1]
+
         except TokenizerError as t:
             print(f"Ошибка {t}")
             return print("ошибка Tokenizer")
-
-        self.rpn_list = RPN(self.token_data.data_tokenizer)
-        try:
-            self.rpn_list.run()
-            print("Queue",self.rpn_list.queue)
         except RpnError as r:
             print(f"Ошибка {r}")
             return print("Ошибка RPN")
+        except CountError as c:
+            print(f"Ошибка {c}")
+            return print("Ошибка Count")
 
-
-        self.count_list = Count(self.rpn_list.queue)
-        self.count_list.run()
-        self.answer = self.count_list.stack[-1]
         print(self.answer)
 
         #не работает
@@ -148,9 +150,9 @@ class Tokenizer:
             self.add_to_buffer(char, "FLOAT")
         elif char == ".":
             self.error(char)
-        elif char in ")" and self.buffer[-1] == ".":
-            self.clearing_buffer(char, "OP")
-        elif char in ")" and self.buffer[-1].isdigit():
+        elif char == ")" and self.buffer[-1] == ".":
+            self.error(char)
+        elif char == ")" and self.buffer[-1].isdigit():
              self.clearing_buffer(char,"OP")
         elif char in "+-*/" and self.buffer[-1] != ".":
             self.clearing_buffer(char, "OP")
@@ -311,6 +313,8 @@ class Count:
         numb1 = float(element1)
         numb2 = float(element2)
         operator = sign_op
+        if numb2 == 0.0 and operator == "/":
+            raise CountError("Ошибка деления на 0")
         operation = {
             "+": lambda x, y: x + y,
             "-": lambda x, y: x - y,
@@ -334,10 +338,13 @@ class TokenizerError(Exception):
 class RpnError(Exception):
     pass
 
+class CountError(Exception):
+    pass
+
 
 if __name__ == "__main__":
     # x = Calculator("-13.3+(-31.2)*0.1").answer
-    y = Calculator("2++3").answer
+    y = Calculator("2/0").answer
     print(y)
 
     # start = Manage()
