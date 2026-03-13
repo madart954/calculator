@@ -119,11 +119,14 @@ class Tokenizer:
             if self.buffer:
                 self.data_tokenizer.append(self.buffer)
 
+            if self.state == "OP":
+                raise TokenizerError(f"Пример закончился на знаке '{char}', состояние = {self.state}")
+
     #машина состояний
     def start_token(self, char: str):
         if char.isdigit():
             self.add_to_buffer(char, "NUMBER")
-        elif char in "+-(":
+        elif char in "-(":
             self.data_tokenizer.append(char)
             self.state = "OP"
         else:
@@ -344,7 +347,7 @@ class CountError(Exception):
 
 if __name__ == "__main__":
     # x = Calculator("-13.3+(-31.2)*0.1").answer
-    y = Calculator("-2+3+4").answer
+    y = Calculator("+2").answer
     print(y)
 
     # start = Manage()

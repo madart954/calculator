@@ -23,11 +23,6 @@ def test_calculator(expression, expected):
 def test_is_number_number(expression,expected):
     assert is_number(expression) == expected
 
-def test_calculator_devine_0():
-    t = cl.Count(["10","0","/"])
-    with pytest.raises(cl.CountError):
-        t.run()
-
 #Токенизатор
 def test_tokenizer():
     result = cl.Tokenizer("2+3")
@@ -54,4 +49,43 @@ def test_rpn_unary_minus():
     result = cl.RPN(['-', '2', '+', '3', '+', '4'])
     result.run()
     assert result.queue == ['2', '~', '3', '+', '4', '+']
+
+def test_rpn_bracket():
+    result = cl.RPN(['(', '-', '2', '+', '3', '+', '4', ')'])
+    result.run()
+    assert result.queue == ['2', '~', '3', '+', '4', '+']
 # Count
+def test_count_devine_0():
+    t = cl.Count(["10","0","/"])
+    with pytest.raises(cl.CountError):
+        t.run()
+
+def test_count_unary_minus():
+    result = cl.Count(["2","~"])
+    result.run()
+    assert result.stack == ["-2"]
+
+def test_count_op():
+    result = cl.Count(["2","~"])
+    result.run()
+    assert result.stack == ["-2"]
+
+@pytest.mark.parametrize("expression, expected", [
+    ("*2", ""),
+    ("/2", ""),
+    ("-2", "-2"),
+    ("+2","")
+])
+def test_count_op_under(expression, expected):
+    result = cl.Calculator(expression)
+    assert result.answer == expected
+
+@pytest.mark.parametrize("expression, expected", [
+    (['2', '*'], ''),
+    (['2', '/'], ''),
+    (['2', '-'], ''),
+    (['2', '+'], '')
+])
+def test_count_op_after(expression, expected):
+    result = cl.Count(expression)
+    assert result.stack == expected
