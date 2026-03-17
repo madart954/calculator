@@ -1,5 +1,5 @@
-from calculator02 import is_number
-import calculator02 as cl
+from calculator import is_number
+import calculator as cl
 import pytest
 
 #UNIT TEST
@@ -81,11 +81,12 @@ def test_count_op_under(expression, expected):
     assert result.answer == expected
 
 @pytest.mark.parametrize("expression, expected", [
-    (['2', '*'], ''),
-    (['2', '/'], ''),
-    (['2', '-'], ''),
-    (['2', '+'], '')
+    (['3', '2', '*'], ['6.0']),
+    (['4', '2', '/'], ['2.0']),
+    (['5', '2', '-'], ['3.0']),
+    (['6', '2', '+'], ['8.0'])
 ])
 def test_count_op_after(expression, expected):
     result = cl.Count(expression)
+    result.run()
     assert result.stack == expected
