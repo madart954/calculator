@@ -1,11 +1,20 @@
+import logging
 
+logging.basicConfig(
+    level = logging.DEBUG,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    handlers=[
+        logging.FileHandler("calculator.log",mode="w", encoding="utf8"),
+        logging.StreamHandler()
+    ]
+)
 
 class Manage:
     def __init__(self):
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.user_input = ""
         self.user_example = ""
         self.user_calc_result = ""
-
         self.user_history = History()
 
     def start_example(self):
@@ -30,6 +39,9 @@ class Manage:
 
             elif self.user_input == 4:
                 break
+            else:
+                print("Repeat Enter")
+                self.logger.warning("Unknow input %s",self.user_input)
 
 
 class History:
@@ -58,8 +70,9 @@ class History:
 
 class Calculator:
     def __init__(self, text):
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.text = text
-        print(self.text)
+        self.logger.info(self.text)
         self.token_data = list()
         self.rpn_list = list()
         self.count_list = list()
@@ -70,34 +83,32 @@ class Calculator:
         try:
             self.token_data = Tokenizer(self.text)
             self.token_data.run()
-            print("Data_tokenizer",self.token_data.data_tokenizer)
+            self.logger.debug("Tokens: %s", self.token_data.data_tokenizer)
 
             self.rpn_list = RPN(self.token_data.data_tokenizer)
             self.rpn_list.run()
-            print("Queue", self.rpn_list.queue)
+            self.logger.debug("RPN: %s", self.rpn_list.queue)
 
             self.count_list = Count(self.rpn_list.queue)
             self.count_list.run()
+            self.logger.debug("Count %s", self.count_list.stack)
             self.answer = self.count_list.stack[-1]
 
+
         except TokenizerError as t:
-            print(f"Ошибка {t}")
-            return print("ошибка Tokenizer")
+            self.logger.error("Ошибка токенизатора: %s", t)
         except RpnError as r:
-            print(f"Ошибка {r}")
-            return print("Ошибка RPN")
+            self.logger.error("Ошибка RPN: %s", r)
         except CountError as c:
-            print(f"Ошибка {c}")
-            return print("Ошибка Count")
+            self.logger.error("Ошибка вычисления: %s", c)
 
-        print(self.answer)
-
-        #не работает
+        self.logger.info("Результат: %s = %s", self.text, self.answer)
         return self.answer
 
 
 class Tokenizer:
     def __init__(self, text):
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.data_tokenizer = list()
         self.text_token = text
         self.buffer = ""
@@ -110,15 +121,16 @@ class Tokenizer:
             "ERROR": self.error
         }
 
+
     #управвлящая функция
     def run(self):
         for char in self.text_token:
             # функции в словаре (состояние как индекс (элемент записи))
             self.handlers[self.state](char)
+            self.logger.debug("Token char %s",char)
         else:
             if self.buffer:
                 self.data_tokenizer.append(self.buffer)
-
             if self.state == "OP":
                 raise TokenizerError(f"Пример закончился на знаке '{char}', состояние = {self.state}")
 
@@ -198,6 +210,7 @@ class RPN:
             "*/": 2,
             "~": 3
         }
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     def run(self):
         #унарный минус
@@ -292,9 +305,11 @@ class RPN:
 
 class Count:
     def __init__(self,rpn_list):
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.rpn_queue = rpn_list
         self.stack = list()
         self.temp_count = None
+
 
     def run(self)-> None:
 
@@ -346,9 +361,9 @@ class CountError(Exception):
 
 
 if __name__ == "__main__":
-    # x = Calculator("-13.3+(-31.2)*0.1").answer
-    y = Calculator("+2").answer
-    print(y)
+    x = Calculator("-13.3+(-31.2)*0.1").answer
+
+
 
     # start = Manage()
     # start.start_example()
