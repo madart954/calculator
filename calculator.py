@@ -127,7 +127,7 @@ class Tokenizer:
         for char in self.text_token:
             # функции в словаре (состояние как индекс (элемент записи))
             self.handlers[self.state](char)
-            self.logger.debug("Token char %s",char)
+            self.logger.debug("Token char %s",[char, self.data_tokenizer])
         else:
             if self.buffer:
                 self.data_tokenizer.append(self.buffer)
@@ -202,6 +202,7 @@ class Tokenizer:
 
 class RPN:
     def __init__(self,tokens):
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.tokens = tokens
         self.stack = list()
         self.queue = list()
@@ -210,7 +211,7 @@ class RPN:
             "*/": 2,
             "~": 3
         }
-        self.logger = logging.getLogger(self.__class__.__name__)
+
 
     def run(self):
         #унарный минус
@@ -219,6 +220,12 @@ class RPN:
         """Перебираем значенине токенизатора"""
 
         for index, element_token in enumerate(self.tokens):
+            self.logger.debug("Rpn %s",
+                              [f" index = {index}",
+                              f"element = {element_token}",
+                              f"stack = {self.stack}",
+                              f"queue = {self.queue}"])
+
             # print(f"primer {self.tokens}\n"
             #       f"element_token = '{element_token}' and index = '{index}'\n"
             #       f"stack = '{self.stack}'\n"
@@ -314,16 +321,20 @@ class Count:
     def run(self)-> None:
 
         for char in self.rpn_queue:
+            self.logger.debug("stack %s",self.stack)
             # print(f"sign = {char} ")
             # print(f"stack_count = {self.stack}\n")
             if  is_number(char) :
                 self.stack.append(char)
             else:
+                self.logger.debug("operand %s", char)
                 if char == "~":
                     self.stack[-1] = "-" + self.stack[-1]
                 else:
+
                     element_count1 = self.stack.pop(-2)
                     element_count2 = self.stack.pop(-1)
+                    self.logger.debug("elements %s", [element_count1,char,element_count2])
                     temp_count = self.operation_math(element_count1, element_count2, char)
                     self.stack.append(temp_count)
 
